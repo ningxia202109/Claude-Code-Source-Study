@@ -1,17 +1,17 @@
-# Summary: 23 — Memory System: Five Layers from CLAUDE.md to Relevant Memory Injection
+# 摘要：23 — Memory 系统：从 CLAUDE.md 到相关记忆注入的五层架构
 
-## Overview
-Maps Claude Code's five-layer memory system — CLAUDE.md project instructions, Auto Memory (memdir), Session Memory, Agent Memory, and Relevant Memories injection — explaining how each layer is written, stored, and surfaced to the model.
+## 概述
+梳理 Claude Code 的五层记忆系统——CLAUDE.md 项目指令、自动记忆（memdir）、会话记忆、Agent 记忆和相关记忆注入——解释每层如何写入、存储和向模型呈现。
 
-## Key Points
-- **CLAUDE.md**: Project-level instructions checked into the repository; read at session start and injected into the static system prompt prefix; the primary mechanism for project-specific knowledge that all users share.
-- **Auto Memory (memdir)**: A `~/.claude/memory/` directory of short markdown files automatically created and updated by the model when it learns something worth remembering across sessions (user preferences, project conventions, frequently-used commands).
-- **Session Memory**: In-session facts stored in a temporary map that lives only for the current conversation; used for intra-session recall without persisting to disk.
-- **Agent Memory**: Per-agent memory stores that allow sub-agents to maintain their own knowledge base separate from the parent agent's memory, supporting multi-agent workflows without cross-contamination.
-- **Relevant Memories injection**: Before each turn, a retrieval step scores stored memories by relevance to the current query (using embedding similarity or keyword matching) and injects the top-k results into the conversation context.
-- **Memory file format**: Auto Memory files are plain markdown with optional YAML front-matter for metadata (date, source agent, relevance tags); no special encoding required.
+## 核心要点
+- **CLAUDE.md**：项目级指令，提交到代码库中；在会话开始时读取并注入到静态系统提示前缀；是所有用户共享的项目特定知识的主要机制。
+- **自动记忆（memdir）**：`~/.claude/memory/` 目录中的简短 Markdown 文件，当模型学到值得跨会话记住的内容（用户偏好、项目规范、常用命令）时自动创建和更新。
+- **会话记忆**：仅在当前对话中存活的临时内存映射中的会话内事实；用于无需持久化到磁盘的会话内回忆。
+- **Agent 记忆**：每个 Agent 的独立记忆存储，允许子 Agent 维护自己的知识库，与父 Agent 的记忆分离，支持多 Agent 工作流而不会交叉污染。
+- **相关记忆注入**：在每轮对话前，一个检索步骤根据与当前查询的相关性（使用嵌入相似度或关键词匹配）对存储的记忆评分，并将排名前 k 的结果注入对话上下文。
+- **记忆文件格式**：自动记忆文件是带可选 YAML 前置元数据（日期、来源 Agent、相关性标签）的纯 Markdown；不需要特殊编码。
 
-## Transferable Patterns
-1. **Separate project memory from personal memory**: CLAUDE.md is project-scoped (committed to git, shared by team); memdir is user-scoped (personal preferences, private context) — keep these stores separate and never mix their content.
-2. **Retrieval-augmented memory injection**: Don't inject all memories on every turn; score them for relevance and inject only the top-k — this keeps context usage low while surfacing the most useful memories.
-3. **Plain markdown for memory files**: Store memories as plain markdown files on disk rather than in a database; this makes memories human-readable, editable, and version-controllable without special tooling.
+## 可迁移的设计模式
+1. **将项目记忆与个人记忆分离**：CLAUDE.md 是项目范围的（提交到 Git，团队共享）；memdir 是用户范围的（个人偏好、私密上下文）——保持这些存储分离，永不混合内容。
+2. **检索增强的记忆注入**：不要在每轮对话都注入所有记忆；根据相关性评分，只注入排名前 k 的记忆——这在保持上下文占用低的同时呈现最有用的记忆。
+3. **用纯 Markdown 文件存储记忆**：将记忆作为纯 Markdown 文件存储在磁盘上，而非数据库；这使记忆人类可读、可编辑和可版本控制，无需特殊工具。

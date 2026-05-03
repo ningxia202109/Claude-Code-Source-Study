@@ -1,17 +1,17 @@
-# Summary: 06 — Context Management: Token Budget, Compaction, and the Circuit Breaker
+# 摘要：06 — 上下文管理：Token 预算、压缩与熔断器
 
-## Overview
-Explains how Claude Code monitors the conversation context window, triggers compaction when the token budget runs low, and uses a circuit breaker to prevent infinite compaction loops — along with the file state cache that makes re-reads cheap.
+## 概述
+解释 Claude Code 如何监控对话上下文窗口、在 Token 预算不足时触发压缩，以及使用熔断器防止无限压缩循环——还有让重复读取变得廉价的文件状态缓存。
 
-## Key Points
-- **Token budget functions**: A set of pure functions compute remaining tokens, warn thresholds, and hard limits; these are called before every API request to decide whether compaction is needed.
-- **Microcompact**: A lightweight summarization pass that truncates older tool results and collapses repeated assistant/user pairs, preserving recent context while reducing token count by ~30%.
-- **Full Compact**: A heavier summarization that sends the entire conversation to the model with a "summarize this" instruction, then replaces the history with the summary — triggered when Microcompact is insufficient.
-- **Circuit breaker**: Tracks consecutive compaction attempts; if compaction fails to reduce tokens below the threshold after N tries, it raises an error instead of looping indefinitely.
-- **`FileStateCache`**: Caches file contents with modification-time keys so that repeated reads of unchanged files (e.g., CLAUDE.md) skip disk I/O, reducing latency during context reconstruction.
-- **Progressive degradation**: The system tries Microcompact → Full Compact → error in sequence, always attempting the least-destructive option first.
+## 核心要点
+- **Token 预算函数**：一组纯函数计算剩余 Token 数、预警阈值和硬性上限；在每次 API 请求前调用，以决定是否需要压缩。
+- **微压缩（Microcompact）**：轻量级摘要处理，截断较旧的工具结果并折叠重复的 assistant/user 对，在保留近期上下文的同时将 Token 数减少约 30%。
+- **完全压缩（Full Compact）**：将整个对话发送给模型并附带"总结此内容"的指令，然后用摘要替换历史记录——在微压缩不够时触发。
+- **熔断器**：追踪连续压缩尝试次数；如果压缩在 N 次尝试后仍无法将 Token 数降到阈值以下，则抛出错误而非无限循环。
+- **`FileStateCache`**：以修改时间为键的文件内容缓存，使对未修改文件（如 CLAUDE.md）的重复读取跳过磁盘 I/O，降低上下文重建时的延迟。
+- **渐进式降级**：系统依次尝试微压缩 → 完全压缩 → 报错，始终优先尝试破坏性最小的选项。
 
-## Transferable Patterns
-1. **Budget-gated compaction**: Check token count before every API call; trigger compaction proactively rather than waiting for a context-length error from the server.
-2. **Circuit breaker on recursive operations**: Any operation that can trigger itself (compact → still too large → compact again) needs an iteration counter and a hard stop condition.
-3. **Cache external reads with mtime keys**: Use `{path, mtime}` as a cache key for file reads; this gives you correct invalidation without polling or filesystem watchers.
+## 可迁移的设计模式
+1. **门控压缩的 Token 预算**：在每次 API 调用前检查 Token 数；主动触发压缩，而非等待服务器返回上下文长度超限错误。
+2. **在递归操作上加熔断器**：任何可能触发自身的操作（压缩 → 仍然过大 → 再次压缩）都需要迭代计数器和硬性停止条件。
+3. **用 mtime 键缓存外部读取**：使用 `{路径, 修改时间}` 作为文件读取的缓存键，无需轮询或文件系统监听即可获得正确的缓存失效。

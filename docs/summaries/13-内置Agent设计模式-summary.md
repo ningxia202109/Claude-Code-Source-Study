@@ -1,18 +1,18 @@
-# Summary: 13 — Built-in Agent Design Patterns: Six Agents, Six Specializations
+# 摘要：13 — 内置 Agent 设计模式：六个 Agent，六种专业化
 
-## Overview
-Analyzes the six built-in agents shipped with Claude Code — General-purpose, Statusline-setup, Explore, Plan, Guide, and Verification — extracting the design patterns that make each agent effective at its specific task.
+## 概述
+分析 Claude Code 内置的六个 Agent——通用型、状态栏配置、Explore、Plan、Guide 和 Verification——提炼每个 Agent 在特定任务上高效运作的设计模式。
 
-## Key Points
-- **General-purpose agent**: The default sub-agent for complex multi-step tasks; has access to all tools and uses full extended thinking; serves as the template for custom agent definitions.
-- **Statusline-setup agent**: A narrow, single-purpose agent with read-only access to settings files; demonstrates how to build focused agents that cannot cause unintended side effects.
-- **Explore agent**: A read-only search agent optimized for codebase navigation; uses a specialized system prompt that biases it toward breadth-first search and concise reporting rather than deep analysis.
-- **Plan agent**: A planning-only agent that produces structured implementation plans; explicitly prohibited from writing code, keeping the plan/implement separation clean.
-- **Guide agent (claude-code-guide)**: Answers questions about Claude Code's own features using web search and documentation reads; demonstrates meta-agents that reason about the tool they run inside.
-- **Verification agent**: Runs tests and checks after an implementation; designed to be spawned post-implementation and return a pass/fail verdict with evidence, not suggestions.
-- **Frontmatter configuration**: All built-in agents are defined in markdown files with YAML frontmatter specifying `name`, `description`, `tools`, `model`, and `system_prompt` — the same format available to users for custom agents.
+## 核心要点
+- **通用型 Agent**：复杂多步任务的默认子 Agent；可访问所有工具并使用完整的扩展思考；作为自定义 Agent 定义的模板。
+- **状态栏配置 Agent**：一个狭义的单一用途 Agent，只读访问设置文件；展示如何构建不会造成意外副作用的专注型 Agent。
+- **Explore Agent**：一个为代码库导航优化的只读搜索 Agent；使用专门的系统提示，倾向于广度优先搜索和简洁报告，而非深度分析。
+- **Plan Agent**：一个只产出结构化实现计划的规划专用 Agent；明确禁止编写代码，保持规划与实现的清晰分离。
+- **Guide Agent（claude-code-guide）**：使用网络搜索和文档读取回答关于 Claude Code 自身功能的问题；展示在工具内部对工具进行推理的元 Agent。
+- **Verification Agent**：在实现完成后运行测试和检查；设计为实现后派生，返回带证据的通过/失败结论，而非建议。
+- **前置元数据配置**：所有内置 Agent 都在 Markdown 文件中定义，YAML 前置元数据声明 `name`、`description`、`tools`、`model` 和 `system_prompt`——与用户自定义 Agent 格式相同。
 
-## Transferable Patterns
-1. **Design agents around capability boundaries, not task types**: The most effective agents are defined by what they *cannot* do (no writes, no network, no code execution) as much as what they can.
-2. **Separate planning from implementation at the agent level**: Use distinct agents for planning and implementing; this prevents the model from collapsing into implementation before the plan is fully formed.
-3. **Write agent system prompts that bias output format**: Specify in the system prompt exactly what the agent should return (a bulleted plan, a pass/fail verdict, a JSON object) so the calling code can parse results reliably.
+## 可迁移的设计模式
+1. **围绕能力边界而非任务类型设计 Agent**：最有效的 Agent 由它们*不能*做什么（不能写入、不能联网、不能执行代码）同等地定义，就像由它们能做什么一样。
+2. **在 Agent 层面分离规划与实现**：为规划和实现使用不同的 Agent；这防止模型在计划完全形成之前就崩溃进入实现模式。
+3. **在 Agent 系统提示中明确输出格式**：在系统提示中精确指定 Agent 应返回什么（带要点的计划、通过/失败结论、JSON 对象），使调用代码能可靠地解析结果。

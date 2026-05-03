@@ -1,14 +1,14 @@
-# Summary: 00 — Table of Contents & Reading Guide
+# 摘要：00 — 目录与阅读指引
 
-## Overview
-Introduction and navigation guide for the 25-chapter series "Deep Dive into Claude Code Source Code," a technical book analyzing the complete source of Anthropic's Claude Code CLI tool (~1,900 TypeScript files).
+## 概述
+本书是对 Anthropic Claude Code CLI 工具完整源代码（约 1,900 个 TypeScript 文件）的深度技术分析，共 25 章。本文件是全书的导航指南。
 
-## Key Points
-- **Target audience**: Developers with 1–3 years of experience who are interested in building AI applications and want to learn from a real production-grade AI product.
-- **Book scope**: Covers the full stack from System Prompt engineering, multi-Agent orchestration, and tool system design to terminal UI rendering.
-- **Reading conventions**: Chinese prose with English technical terms preserved; code references use `filepath:line-range` format; chapters can be read independently but are best read in order.
-- **Three reading paths**:
-  - *Quick start* (7 chapters): 01 → 02 → 03 → 05 → 09 → 12 → 25
-  - *AI engineering* (9 chapters): 01 → 03 → 04 → 05 → 06 → 08 → 09 → 12 → 13
-  - *Complete path* (25 chapters): sequential reading for the deepest understanding
-- **Five parts**: Global Architecture / AI Core / Tools-Commands-Agents / Security & Engineering / Terminal UI & Knowledge Management, plus an appendix.
+## 核心要点
+- **目标读者**：有 1～3 年经验、对构建 AI 应用感兴趣、希望从真实生产级 AI 产品中学习的开发者。
+- **全书范围**：涵盖从 System Prompt 工程、多 Agent 编排、工具系统设计到终端 UI 渲染的完整技术栈。
+- **阅读约定**：中文叙述，保留英文技术术语；代码引用格式为 `文件路径:行号范围`；各章可独立阅读，但顺序阅读效果最佳。
+- **三条阅读路径**：
+  - *快速入门*（7 章）：01 → 02 → 03 → 05 → 09 → 12 → 25
+  - *AI 工程*（9 章）：01 → 03 → 04 → 05 → 06 → 08 → 09 → 12 → 13
+  - *完整路径*（25 章）：顺序阅读，获得最深入的理解
+- **五大部分**：全局架构 / AI 核心 / 工具-命令-Agent / 安全与工程 / 终端 UI 与知识管理，附加附录。

@@ -1,17 +1,17 @@
-# Summary: 16 — Permission System: 7 Modes, Rule Engine, and AI Classifier
+# 摘要：16 — 权限系统：7 种模式、规则引擎与 AI 分类器
 
-## Overview
-Details Claude Code's multi-layered permission system — seven permission modes, a rule engine for declarative allow/deny lists, and an AI-based classifier for ambiguous cases — all composing into a defense-in-depth architecture.
+## 概述
+详细介绍 Claude Code 的多层权限系统——七种权限模式、用于声明式允许/拒绝列表的规则引擎，以及用于模糊情况的 AI 分类器——共同构成纵深防御架构。
 
-## Key Points
-- **7 permission modes**: `default` (prompt for writes), `plan` (read-only, shows plan before acting), `acceptEdits` (auto-approve file edits), `bypassPermissions` (skip all checks — CI/automation use), `dontAsk` (never prompt, use rules only), `auto` (heuristic-based auto-approval), `bubble` (delegate decisions to parent agent).
-- **Rule engine**: Per-project and per-user `allow`/`deny` rule lists in settings; rules match on tool name, path patterns (glob), and command patterns; evaluated in priority order before any prompt is shown.
-- **AI classifier**: For tool calls that don't match any static rule and aren't in an auto-approval mode, an AI classifier scores the action's risk level (safe/warn/dangerous) and chooses whether to auto-approve, prompt, or block.
-- **`bubble` mode for sub-agents**: Sub-agents running under `bubble` escalate permission decisions to the parent agent rather than prompting the user directly, enabling centralized permission management in multi-agent workflows.
-- **Audit trail**: Every permission decision (approved/denied/auto-approved) is logged with tool name, arguments, decision source, and timestamp, providing a full audit trail for security review.
-- **Permission caching**: Within a session, approval decisions for identical tool+argument pairs are cached so the user isn't re-prompted for repetitive actions.
+## 核心要点
+- **7 种权限模式**：`default`（写入时提示）、`plan`（只读，行动前展示计划）、`acceptEdits`（自动批准文件编辑）、`bypassPermissions`（跳过所有检查——用于 CI/自动化）、`dontAsk`（永不提示，仅使用规则）、`auto`（基于启发式的自动批准）、`bubble`（将决策委托给父 Agent）。
+- **规则引擎**：设置中的每个项目和用户的 `allow`/`deny` 规则列表；规则匹配工具名称、路径模式（Glob）和命令模式；在显示任何提示之前按优先级顺序评估。
+- **AI 分类器**：对于不匹配任何静态规则且不在自动批准模式的工具调用，AI 分类器评估操作的风险级别（安全/警告/危险），并选择自动批准、提示还是拦截。
+- **子 Agent 的 `bubble` 模式**：在 `bubble` 模式下运行的子 Agent 将权限决策上报给父 Agent，而非直接提示用户，支持多 Agent 工作流中的集中权限管理。
+- **审计追踪**：每个权限决策（批准/拒绝/自动批准）都以工具名称、参数、决策来源和时间戳记录，提供完整的安全审查审计追踪。
+- **权限缓存**：在会话内，对相同工具+参数组合的批准决策会被缓存，避免重复操作时反复提示用户。
 
-## Transferable Patterns
-1. **Enumerate permission modes as a named type**: Replace boolean `autoApprove` flags with a named mode enum; this makes the permission surface explicit and enables future modes without refactoring call sites.
-2. **Layer static rules before AI classifiers**: Check cheap deterministic rules (allow/deny lists) before invoking a model-based classifier; reserve the AI call for genuinely ambiguous cases.
-3. **Escalate rather than block in sub-agent contexts**: Give sub-agents a `bubble` mode that passes permission decisions up the call stack; this prevents sub-agents from either blocking silently or over-prompting.
+## 可迁移的设计模式
+1. **将权限模式枚举为命名类型**：用命名的模式枚举替换布尔型 `autoApprove` 标志；这使权限面显式可见，并支持在不重构调用点的情况下添加未来模式。
+2. **在 AI 分类器之前分层静态规则**：在调用基于模型的分类器之前检查廉价的确定性规则（允许/拒绝列表）；将 AI 调用留给真正模糊的情况。
+3. **在子 Agent 上下文中上报而非阻塞**：给子 Agent 一个 `bubble` 模式，将权限决策沿调用栈向上传递；这防止子 Agent 要么静默阻塞，要么过度提示。

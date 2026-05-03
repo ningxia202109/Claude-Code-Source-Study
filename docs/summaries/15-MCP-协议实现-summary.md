@@ -1,17 +1,17 @@
-# Summary: 15 — MCP Protocol Implementation: 8 Server Types, 6 Transports, OAuth Auth
+# 摘要：15 — MCP 协议实现：8 种服务器类型、6 种传输方式与 OAuth 认证
 
-## Overview
-Analyzes Claude Code's implementation of the Model Context Protocol (MCP) — covering the 8 server configuration types, 7 configuration scopes, 6 transport types, and the OAuth/XAA authentication flow for connecting to remote MCP servers.
+## 概述
+分析 Claude Code 对模型上下文协议（MCP）的实现——涵盖 8 种服务器配置类型、7 个配置作用域、6 种传输类型，以及连接远程 MCP 服务器的 OAuth/XAA 认证流程。
 
-## Key Points
-- **8 server config types**: `stdio`, `sse`, `http`, `websocket`, `docker`, `npx`, `uvx`, `node` — each specifying how to launch or connect to an MCP server, with type-specific fields validated by Zod schemas.
-- **7 configuration scopes**: Server configs can be declared at plugin / user-global / project / local / environment / CLI-flag / policy levels, following the same priority hierarchy as the Settings system.
-- **6 transport types**: The underlying communication channel (stdio pipes, SSE stream, HTTP polling, WebSocket, in-process IPC, mock) is abstracted behind a `McpTransport` interface, making servers transport-agnostic.
-- **OAuth/XAA authentication**: Remote MCP servers requiring auth trigger a browser-based OAuth flow; tokens are stored in the user-level credential store and refreshed automatically with exponential backoff.
-- **Tool discovery**: After connecting, Claude Code calls `tools/list` to enumerate the server's tools and injects them into the active tool registry alongside built-in tools, making them indistinguishable from native tools.
-- **Health monitoring**: Each connected server is polled with periodic pings; disconnected servers trigger reconnect logic with configurable retry limits before being marked unavailable.
+## 核心要点
+- **8 种服务器配置类型**：`stdio`、`sse`、`http`、`websocket`、`docker`、`npx`、`uvx`、`node`——每种指定如何启动或连接 MCP 服务器，类型特定字段由 Zod Schema 验证。
+- **7 个配置作用域**：服务器配置可在插件 / 用户全局 / 项目 / 本地 / 环境变量 / CLI 标志 / 策略层级声明，遵循与设置系统相同的优先级层次。
+- **6 种传输类型**：底层通信通道（stdio 管道、SSE 流、HTTP 轮询、WebSocket、进程内 IPC、Mock）抽象在 `McpTransport` 接口后面，使服务器与传输无关。
+- **OAuth/XAA 认证**：需要认证的远程 MCP 服务器触发基于浏览器的 OAuth 流程；Token 存储在用户级凭证存储中，通过指数退避自动刷新。
+- **工具发现**：连接后，Claude Code 调用 `tools/list` 枚举服务器的工具，并将它们注入活跃工具注册表，与内置工具并列，对调用方无任何区别。
+- **健康监控**：每个已连接的服务器通过定期 ping 轮询；断开的服务器触发重连逻辑，达到配置的重试上限后标记为不可用。
 
-## Transferable Patterns
-1. **Unify local and remote tools under one interface**: Wrap MCP-sourced tools in the same `Tool` interface as built-in tools; callers never need to know whether a tool is local or remote.
-2. **Scope-layered server configuration**: Allow server definitions at multiple scopes (user / project / local) so that different environments can use different servers without editing shared config files.
-3. **Lazy OAuth with automatic token refresh**: Don't pre-authenticate all servers at startup; trigger the OAuth flow on first use and refresh tokens transparently so the user authenticates at most once per server.
+## 可迁移的设计模式
+1. **将本地和远程工具统一在同一接口下**：用与内置工具相同的 `Tool` 接口包装 MCP 来源的工具；调用方永远不需要知道工具是本地的还是远程的。
+2. **作用域分层的服务器配置**：允许在多个作用域（用户 / 项目 / 本地）定义服务器；不同环境可以使用不同服务器，无需编辑共享配置文件。
+3. **首次使用时懒加载 OAuth，自动刷新 Token**：不要在启动时预先认证所有服务器；在首次使用时触发 OAuth 流程，透明地刷新 Token，每个服务器最多只让用户认证一次。

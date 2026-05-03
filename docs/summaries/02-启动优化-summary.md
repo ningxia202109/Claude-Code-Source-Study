@@ -1,17 +1,17 @@
-# Summary: 02 — Startup Optimization: From Cold Start to First Response in Milliseconds
+# 摘要：02 — 启动优化：从冷启动到首次响应的毫秒级优化
 
-## Overview
-Analyzes the multi-layered startup optimization techniques that make Claude Code's CLI feel instant, covering fast-path routing, parallelized I/O, API preconnection, early input capture, dead code elimination, and memoization.
+## 概述
+分析让 Claude Code CLI 感觉"瞬间响应"的多层启动优化技术，涵盖快速路径路由、并行 I/O、API 预连接、提前捕获输入、死代码消除和记忆化。
 
-## Key Points
-- **Fast-path routing**: `cli.tsx` intercepts version/help flags and simple non-interactive commands before loading the full UI stack, returning at the earliest possible layer.
-- **Side-effect hoisting**: Async I/O calls (config reads, network preconnects) are placed between `import` statements so they execute in parallel with module evaluation, effectively hiding I/O latency behind module load time.
-- **API preconnection**: Initiates an HTTPS connection to the Anthropic endpoint during startup before the user has even finished typing, eliminating TCP/TLS handshake latency from the first API call.
-- **Early input capture**: Keyboard input buffering starts before the Ink UI is fully initialized, ensuring no keystrokes are lost during the rendering warmup period.
-- **Dead code elimination (DCE)**: `feature()` paired with `require()` (not static `import`) allows Bun's bundler to eliminate entire code branches at compile time for unused build variants.
-- **Memoization**: Expensive computations (system prompt assembly, settings resolution) are cached with `memoize()` so repeated calls within a session pay only the first-call cost.
+## 核心要点
+- **快速路径路由**：`cli.tsx` 在加载完整 UI 栈之前拦截 `--version`/`--help` 标志和简单的非交互式命令，在最早的层返回。
+- **副作用提升**：异步 I/O 调用（读取配置、网络预连接）被放置在 `import` 语句之间，与模块求值并行执行，有效将 I/O 延迟隐藏在模块加载时间内。
+- **API 预连接**：在用户完成输入之前，启动时就向 Anthropic 端点发起 HTTPS 连接，消除第一次 API 调用的 TCP/TLS 握手延迟。
+- **提前捕获输入**：在 Ink UI 完全初始化之前就开始缓冲键盘输入，确保在渲染预热期间不会丢失任何按键。
+- **死代码消除（DCE）**：`feature()` 配合 `require()`（而非静态 `import`）使 Bun 打包器在编译时消除未使用构建变体的整个代码分支。
+- **记忆化**：使用 `memoize()` 缓存昂贵的计算（系统提示组装、设置解析），会话内重复调用只付出首次调用的代价。
 
-## Transferable Patterns
-1. **Hoist async calls between imports**: Place `const prefetchPromise = fetchSomething()` between import statements; await it lazily when the result is actually needed.
-2. **Preconnect before user intent is known**: Establish network connections during startup for endpoints that are almost always needed, trading a small idle cost for near-zero connection latency.
-3. **Buffer user input before UI is ready**: Capture and queue raw stdin events immediately on process start; replay them once the UI event loop is running.
+## 可迁移的设计模式
+1. **在 import 之间提升异步调用**：在 import 语句之间放置 `const prefetchPromise = fetchSomething()`，在真正需要结果时再懒加载等待。
+2. **在用户意图明确之前预连接**：在启动时为几乎必然会用到的端点建立网络连接，以少量空闲开销换取近乎零的连接延迟。
+3. **在 UI 就绪前缓冲用户输入**：进程启动时立即捕获并排队原始 stdin 事件，UI 事件循环就绪后重放。

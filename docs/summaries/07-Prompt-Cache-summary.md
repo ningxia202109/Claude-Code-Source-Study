@@ -1,17 +1,17 @@
-# Summary: 07 — Prompt Cache: Byte-Exact Stability and the Latch Pattern
+# 摘要：07 — Prompt Cache：字节级稳定性与锁存模式
 
-## Overview
-Details Claude Code's prompt caching strategy — how `cache_control` markers are placed, how byte-exact stability is enforced across turns, how fork prompts are threaded for sub-agents, and the latch pattern used to prevent cache invalidation.
+## 概述
+详细介绍 Claude Code 的提示缓存策略——`cache_control` 标记的放置位置、字节级稳定性的强制保证、子 Agent 的 fork 提示传递，以及防止缓存失效的锁存模式。
 
-## Key Points
-- **`cache_control` placement**: Breakpoints are inserted at the end of the static system prompt prefix and at the end of large stable message blocks (e.g., file contents injected early in the conversation).
-- **`CacheSafeParams`**: A wrapper type that enforces that any value placed before a cache breakpoint passes a byte-exact stability check — if the value could change between turns, the type system rejects it at compile time.
-- **Byte-exact stability requirement**: Anthropic's cache matches on exact byte sequences; even a single character change invalidates the cached prefix. Claude Code uses frozen objects and content-addressed keys to guarantee stability.
-- **Fork prompt threading**: When a sub-agent is spawned, it inherits a "fork prompt" snapshot of the parent's stable system prompt prefix so the cache hit carries over to the sub-agent's first call.
-- **Latch pattern**: Once a cache breakpoint is written into a message, it is never moved or removed during the session — this is the "latch." Moving a breakpoint would invalidate all downstream cache entries.
-- **Cache hit metrics**: Per-turn metadata tracks `cache_read_input_tokens` and `cache_creation_input_tokens`; these are surfaced in the status line so engineers can verify cache effectiveness.
+## 核心要点
+- **`cache_control` 放置**：在静态系统提示前缀末尾，以及对话早期注入的大型稳定消息块（如文件内容）末尾插入断点。
+- **`CacheSafeParams`**：一个包装类型，强制要求放置在缓存断点之前的任何值通过字节级稳定性检查——如果该值在多轮对话间可能发生变化，类型系统在编译时就会拒绝。
+- **字节级稳定性要求**：Anthropic 的缓存按精确字节序列匹配；即使单个字符的变化也会使缓存前缀失效。Claude Code 使用冻结对象和内容寻址键来保证稳定性。
+- **Fork 提示传递**：当子 Agent 被派生时，它继承父 Agent 稳定系统提示前缀的"fork 提示"快照，使缓存命中延续到子 Agent 的第一次调用。
+- **锁存模式**：一旦缓存断点被写入消息，在会话期间永不移动或删除——这就是"锁存"。移动断点会使所有下游缓存条目失效。
+- **缓存命中指标**：每轮元数据追踪 `cache_read_input_tokens` 和 `cache_creation_input_tokens`；这些数据展示在状态栏中，方便工程师验证缓存效果。
 
-## Transferable Patterns
-1. **Type-enforce cache stability**: Create a `CacheSafe<T>` wrapper that only accepts values known to be byte-stable; don't rely on runtime assertions alone.
-2. **Latch breakpoints, never move them**: Treat cache breakpoint positions as append-only commitments for the session lifetime; redesign your prompt structure so breakpoints never need to move.
-3. **Propagate cache context to sub-agents**: When forking a conversation, pass the parent's stable prefix snapshot so the child's first API call benefits from the parent's cache warm-up.
+## 可迁移的设计模式
+1. **用类型强制缓存稳定性**：创建 `CacheSafe<T>` 包装类型，只接受已知字节稳定的值；不要仅依赖运行时断言。
+2. **锁存断点，永不移动**：将缓存断点位置视为会话生命周期内的只增承诺；重新设计提示结构，使断点永不需要移动。
+3. **将缓存上下文传播到子 Agent**：派生对话时，传递父 Agent 的稳定前缀快照，让子 Agent 的第一次 API 调用受益于父 Agent 的缓存预热。

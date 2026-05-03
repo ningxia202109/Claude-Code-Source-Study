@@ -1,17 +1,17 @@
-# Summary: 05 — Dialog Loop: The AsyncGenerator State Machine at the Heart of Claude Code
+# 摘要：05 — 对话循环：Claude Code 核心的 AsyncGenerator 状态机
 
-## Overview
-Dissects `query.ts`, the central dialog loop that drives every conversation turn — from message preprocessing and streaming API calls to tool execution, error recovery, and the 7+ `continue` paths that keep the loop alive across failures.
+## 概述
+深度解析 `query.ts`——驱动每轮对话的核心对话循环，涵盖消息预处理、流式 API 调用、工具执行、错误恢复，以及维持循环运转的 7+ 条 `continue` 恢复路径。
 
-## Key Points
-- **AsyncGenerator architecture**: `query()` is implemented as an `async function*` that yields `AssistantMessage` chunks to the caller (the REPL), allowing the UI to stream tokens while the loop manages state internally.
-- **Preprocessing pipeline**: Each user message passes through an ordered pipeline of transformers (mention expansion, file injection, context trimming) before being sent to the API.
-- **Tool execution cycle**: When the model returns `tool_use` blocks, `query.ts` executes each tool, collects `tool_result` blocks, appends them to the conversation, and loops back to the API — fully transparent to the caller.
-- **7+ recovery `continue` paths**: Handles `overloaded_error`, `rate_limit_error`, `context_length_exceeded`, empty response, interrupted streams, and more — each with a specific recovery strategy (retry, compact, truncate, resume).
-- **Streaming vs. non-streaming dual mode**: Supports both Server-Sent Events streaming (default) and non-streaming (fallback/batch mode) through the same generator interface, hiding the transport difference from callers.
-- **Turn metadata tracking**: Collects per-turn metrics (input tokens, output tokens, cache hits, tool calls) and emits them as a final yield at the end of each turn for logging and display.
+## 核心要点
+- **AsyncGenerator 架构**：`query()` 实现为 `async function*`，将 `AssistantMessage` 块 yield 给调用方（REPL），让 UI 在流式传输 Token 的同时，循环内部管理自身状态。
+- **预处理管道**：每条用户消息在发送给 API 之前，都会经过有序的转换器管道（提及展开、文件注入、上下文裁剪）。
+- **工具执行循环**：当模型返回 `tool_use` 块时，`query.ts` 执行每个工具，收集 `tool_result` 块，将其追加到对话中，再循环回 API——对调用方完全透明。
+- **7+ 条恢复 `continue` 路径**：处理 `overloaded_error`、`rate_limit_error`、`context_length_exceeded`、空响应、中断的流等——每种情况都有特定的恢复策略（重试、压缩、截断、恢复）。
+- **流式/非流式双模式**：通过同一个生成器接口同时支持 SSE 流式响应（默认）和完整 JSON 响应（降级/批量模式），对调用方隐藏传输差异。
+- **轮次元数据追踪**：收集每轮指标（输入 Token 数、输出 Token 数、缓存命中、工具调用次数），在每轮结束时作为最终 yield 输出，用于日志记录和展示。
 
-## Transferable Patterns
-1. **Model the dialog loop as an AsyncGenerator**: Yields let you stream partial results to the UI while keeping all state-machine logic inside a single function — cleaner than callbacks or event emitters.
-2. **Enumerate and handle every failure mode explicitly**: List all API error codes your system can encounter and give each a named recovery path; don't use a single catch-all retry.
-3. **Separate transport from conversation logic**: The streaming/non-streaming duality lives in a thin adapter layer; `query.ts` itself is transport-agnostic.
+## 可迁移的设计模式
+1. **将对话循环建模为 AsyncGenerator**：yield 让你能向 UI 流式传输部分结果，同时将所有状态机逻辑保持在单一函数内——比回调或事件发射器更清晰。
+2. **显式枚举并处理每种失败模式**：列出系统可能遇到的所有 API 错误码，并为每种情况命名恢复路径；不要用单一的 catch-all 重试。
+3. **将传输层与对话逻辑分离**：流式/非流式的二元性存在于薄适配层中；`query.ts` 本身与传输无关。

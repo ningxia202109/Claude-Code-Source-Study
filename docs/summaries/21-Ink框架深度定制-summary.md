@@ -1,17 +1,17 @@
-# Summary: 21 — Ink Framework Deep Customization: Forked Reconciler, Yoga Layout, and Virtual Scrolling
+# 摘要：21 — Ink 框架深度定制：forked 协调器、Yoga 布局与虚拟滚动
 
-## Overview
-Analyzes the 96-file forked Ink framework inside Claude Code — the customized React reconciler, Yoga flexbox layout engine integration, double-buffer rendering pipeline, virtual scrolling for long outputs, and mouse event handling.
+## 概述
+分析 Claude Code 内部 96 个文件的 forked Ink 框架——定制化的 React 协调器、Yoga Flexbox 布局引擎集成、双缓冲渲染管道、长内容的虚拟滚动，以及鼠标事件处理。
 
-## Key Points
-- **Forked React reconciler**: Claude Code ships a modified copy of Ink (the React-for-terminals library) with patches to the reconciler for performance and to support terminal-specific features not available upstream.
-- **Yoga layout engine**: Facebook's Yoga (a C++ flexbox engine) computes layout for terminal UI nodes; Claude Code uses it to support `flexDirection`, `alignItems`, `justifyContent`, and `gap` in terminal components — the same flexbox model as CSS.
-- **Double-buffer rendering**: The render pipeline maintains two terminal-cell buffers (current and next); each frame computes the diff between them and emits only the changed ANSI escape sequences, minimizing flicker and terminal I/O.
-- **Virtual scrolling**: Very long content (e.g., large file contents, long tool outputs) is rendered with a virtual scroll window — only the visible rows are passed to the layout engine and rendered, keeping frame time O(viewport) not O(content).
-- **Mouse event handling**: The forked Ink includes mouse event support (click, scroll, hover) using terminal mouse reporting escape sequences; this enables scrollable panes and clickable UI elements.
-- **Measurement and intrinsics**: Custom components can implement a `measureNode()` method to report their preferred dimensions to Yoga, enabling text components to request exactly the width/height they need.
+## 核心要点
+- **forked React 协调器**：Claude Code 内置了一份经过修改的 Ink（React for 终端库）副本，对协调器进行了性能补丁和上游不可用的终端特定功能支持。
+- **Yoga 布局引擎**：Facebook 的 Yoga（C++ Flexbox 引擎）为终端 UI 节点计算布局；Claude Code 用它在终端组件中支持 `flexDirection`、`alignItems`、`justifyContent` 和 `gap`——与 CSS 相同的 Flexbox 模型。
+- **双缓冲渲染**：渲染管道维护两个终端单元格缓冲区（当前和下一帧）；每帧计算两者之差，只发出变化的 ANSI 转义序列，最大程度减少闪烁和终端 I/O。
+- **虚拟滚动**：非常长的内容（如大型文件内容、长工具输出）使用虚拟滚动窗口渲染——只有可见行才传递给布局引擎和渲染器，保持帧时间为 O(视口) 而非 O(内容)。
+- **鼠标事件处理**：forked Ink 使用终端鼠标报告转义序列包含了鼠标事件支持（点击、滚动、悬停）；这支持可滚动窗格和可点击 UI 元素。
+- **尺寸测量与固有大小**：自定义组件可实现 `measureNode()` 方法，向 Yoga 报告其首选尺寸，使文本组件能请求精确需要的宽度/高度。
 
-## Transferable Patterns
-1. **Fork aggressively when upstream is too constrained**: If an upstream library's architecture prevents the optimizations you need (double buffering, virtual scroll), forking and patching is more maintainable than workarounds.
-2. **Use double-buffering for any incremental renderer**: Maintain current and next state buffers; compute and emit only the diff — this is the right architecture for any output that updates in place (terminals, canvases, e-ink).
-3. **Virtual scrolling is required for unbounded content**: Never pass unbounded lists to a layout engine; clip to the visible viewport before layout and rendering, regardless of the rendering target.
+## 可迁移的设计模式
+1. **当上游限制太多时果断 Fork**：如果上游库的架构阻止了你需要的优化（双缓冲、虚拟滚动），Fork 并修补比绕路更易维护。
+2. **对任何增量渲染器使用双缓冲**：维护当前和下一帧的状态缓冲区；计算并只发出差异——这是任何就地更新输出（终端、画布、电子墨水）的正确架构。
+3. **无界内容必须虚拟滚动**：永不将无界列表传递给布局引擎；在布局和渲染之前裁剪到可见视口，无论渲染目标是什么。

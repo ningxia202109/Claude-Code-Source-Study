@@ -1,17 +1,17 @@
-# Summary: 10 — BashTool Deep Dive: AST Security, Permission Chain, and Sandbox
+# 摘要：10 — BashTool 深度剖析：AST 安全分析、权限链与沙箱
 
-## Overview
-Provides a detailed analysis of BashTool — the most complex tool in the codebase at ~12,400 lines across 18 files — focusing on its tree-sitter AST-based security analysis, multi-stage permission chain, and optional macOS sandbox.
+## 概述
+深度分析 BashTool——代码库中最复杂的工具，约 12,400 行代码分布在 18 个文件中——重点介绍其基于 tree-sitter AST 的安全分析、多阶段权限链和可选的 macOS 沙箱。
 
-## Key Points
-- **Scale**: BashTool spans 18 files and ~12,400 lines, making it the single largest module in Claude Code; its complexity reflects the security sensitivity of executing arbitrary shell commands.
-- **Tree-sitter AST analysis**: Rather than regex-matching command strings, BashTool parses shell commands into an AST using tree-sitter, enabling precise detection of command injection, pipe chains, subshell escapes, and dangerous patterns like `rm -rf /`.
-- **Multi-stage permission chain**: Every command passes through: (1) static allow/deny lists, (2) AST-based security analysis, (3) per-tool permission rules, (4) the global permission mode check, (5) optional user confirmation prompt — in order.
-- **Sandbox (macOS only)**: On macOS, commands can be executed inside an `sandbox-exec` profile that restricts filesystem writes, network access, and process spawning; the profile is generated dynamically based on the tool's declared capabilities.
-- **Persistent shell session**: BashTool maintains a long-lived shell process across calls within a session, enabling stateful workflows (e.g., `cd` persists, environment variables carry over) while tracking cwd changes.
-- **Output capture and truncation**: stdout/stderr are captured with size limits; very large outputs are truncated with a summary, preventing context window overflow from runaway commands.
+## 核心要点
+- **规模**：BashTool 横跨 18 个文件约 12,400 行代码，是 Claude Code 中体量最大的单一模块；其复杂性反映了执行任意 Shell 命令的安全敏感性。
+- **Tree-sitter AST 分析**：BashTool 不使用正则匹配命令字符串，而是用 tree-sitter 将 Shell 命令解析为 AST，从而精确检测命令注入、管道链、子 Shell 转义以及 `rm -rf /` 等危险模式。
+- **多阶段权限链**：每条命令依次经过：① 静态允许/拒绝列表，② 基于 AST 的安全分析，③ 每工具权限规则，④ 全局权限模式检查，⑤ 可选的用户确认提示。
+- **沙箱（仅 macOS）**：在 macOS 上，命令可在 `sandbox-exec` 配置文件中执行，该配置文件限制文件系统写入、网络访问和进程派生；配置文件根据工具声明的能力动态生成。
+- **持久 Shell 会话**：BashTool 在会话内维护一个长期存活的 Shell 进程，支持有状态的工作流（如 `cd` 持久化、环境变量延续），同时追踪 cwd 变化。
+- **输出捕获与截断**：stdout/stderr 以大小限制捕获；非常大的输出会被截断并附加摘要，防止失控命令导致上下文窗口溢出。
 
-## Transferable Patterns
-1. **Parse, don't pattern-match, for security analysis**: Use an AST (tree-sitter, esprima, etc.) to analyze code/commands; regex-based blocking is bypassable and produces false positives on legitimate code.
-2. **Layer permissions from cheapest to most expensive**: Check static lists first, then programmatic rules, then AI classifiers, then user prompts — fail fast on the cheap checks before reaching expensive ones.
-3. **Maintain a persistent subprocess with state tracking**: A long-lived shell process is more powerful than spawning a new process per command; track cwd and environment changes to keep the host process in sync.
+## 可迁移的设计模式
+1. **解析而非模式匹配做安全分析**：使用 AST（tree-sitter、esprima 等）分析代码/命令；基于正则的拦截可被绕过，且对合法代码产生误报。
+2. **从最廉价到最昂贵地分层权限检查**：先检查静态列表，再检查程序化规则，再检查 AI 分类器，最后才用户确认——在到达昂贵检查之前快速失败于廉价检查。
+3. **维护具有状态追踪的持久子进程**：长期存活的 Shell 进程比每条命令派生新进程更强大；追踪 cwd 和环境变化以保持宿主进程同步。

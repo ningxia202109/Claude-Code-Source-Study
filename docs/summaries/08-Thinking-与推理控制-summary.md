@@ -1,17 +1,17 @@
-# Summary: 08 — Thinking & Reasoning Control: Adaptive Depth from Ultrathink to Disabled
+# 摘要：08 — Thinking 与推理控制：从 Ultrathink 到禁用的自适应深度
 
-## Overview
-Explains how Claude Code controls the model's extended thinking capability through a `ThinkingConfig` with three modes (adaptive/enabled/disabled), four effort levels, the special "ultrathink" keyword, and an Advisor server-tool pattern for lightweight reasoning.
+## 概述
+解释 Claude Code 如何通过具有三种模式（自适应/启用/禁用）的 `ThinkingConfig`、四个努力级别、特殊的"ultrathink"关键词，以及用于轻量级推理的 Advisor 服务器工具模式，来控制模型的扩展思考能力。
 
-## Key Points
-- **`ThinkingConfig` modes**: `adaptive` (default — enables thinking when the query is judged complex), `enabled` (always on), `disabled` (always off, for speed-sensitive paths like autocompletion).
-- **Effort levels**: Four levels (low/medium/high/max) map to increasing `budget_tokens` values; higher effort gives the model more thinking tokens but increases latency and cost.
-- **Ultrathink keyword**: When the user types "ultrathink" in their message, Claude Code detects it and upgrades the current turn to `max` effort, effectively asking the model to think as deeply as possible.
-- **Adaptive complexity heuristics**: In `adaptive` mode, a set of heuristics (message length, presence of code blocks, tool invocation history) estimates task complexity to choose an effort level automatically.
-- **Advisor server-tool pattern**: For tasks where full extended thinking is too expensive, a lightweight "advisor" tool sends a separate, smaller model call to get a reasoned recommendation — a cheaper form of structured reasoning.
-- **Thinking token budget isolation**: Thinking tokens are counted separately from the conversation context budget so that extended reasoning doesn't crowd out tool results or file contents.
+## 核心要点
+- **`ThinkingConfig` 模式**：`adaptive`（默认——在判断查询复杂时启用思考）、`enabled`（始终开启）、`disabled`（始终关闭，用于对速度敏感的路径如自动补全）。
+- **努力级别**：四个级别（low/medium/high/max）对应递增的 `budget_tokens` 值；更高的努力给模型更多思考 Token，但会增加延迟和成本。
+- **Ultrathink 关键词**：当用户在消息中输入"ultrathink"时，Claude Code 检测到后将当前轮次升级为 `max` 努力级别，相当于要求模型尽可能深入思考。
+- **自适应复杂度启发式**：在 `adaptive` 模式下，一组启发式规则（消息长度、代码块的存在、工具调用历史）估算任务复杂度，以自动选择努力级别。
+- **Advisor 服务器工具模式**：对于完整扩展思考过于昂贵的任务，一个轻量级的"advisor"工具向更小的模型发起单独调用获取有理据的建议——一种更廉价的结构化推理形式。
+- **思考 Token 预算隔离**：思考 Token 与对话上下文预算分开计算，以防止扩展推理挤占工具结果或文件内容。
 
-## Transferable Patterns
-1. **Gate extended thinking on complexity signals**: Don't pay for thinking on every turn; classify query complexity with cheap heuristics and enable thinking only above a threshold.
-2. **Expose a "max effort" keyword**: Give power users a simple token ("ultrathink", "think harder") that overrides the default effort level without requiring a settings change.
-3. **Use a smaller advisor model for structured reasoning**: When a full thinking turn is too expensive, a separate call to a smaller model with a structured reasoning prompt can approximate the benefit at lower cost.
+## 可迁移的设计模式
+1. **基于复杂度信号门控扩展思考**：不要在每轮对话都付出思考的代价；用廉价的启发式方法对查询复杂度分类，只在超过阈值时启用思考。
+2. **提供"最大努力"关键词**：给高级用户一个简单的 Token（"ultrathink"、"think harder"），让其无需修改设置即可覆盖默认努力级别。
+3. **使用更小的 Advisor 模型进行结构化推理**：当完整思考轮次过于昂贵时，向带有结构化推理提示的更小模型发起单独调用，可以以更低的成本近似获得相同的收益。

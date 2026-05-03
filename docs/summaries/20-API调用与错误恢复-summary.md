@@ -1,17 +1,17 @@
-# Summary: 20 — API Calls & Error Recovery: withRetry, 529/429 Logic, and Multi-Provider
+# 摘要：20 — API 调用与错误恢复：withRetry、529/429 逻辑与多提供商
 
-## Overview
-Documents Claude Code's API call layer — the `withRetry` AsyncGenerator wrapper, specific handling for 529 (overloaded) and 429 (rate-limit) errors, the streaming/non-streaming dual mode, and the multi-provider fallback chain.
+## 概述
+记录 Claude Code 的 API 调用层——`withRetry` AsyncGenerator 包装器、针对 529（过载）和 429（限速）的差异化处理、流式/非流式双模式，以及多提供商降级链。
 
-## Key Points
-- **`withRetry` AsyncGenerator**: Wraps an API call generator with retry logic; on retryable errors it re-invokes the generator with exponential backoff, transparently yielding previously-streamed tokens from the new attempt to maintain stream continuity.
-- **529 vs. 429 handling**: 529 (server overloaded) uses aggressive short-interval retries (1–4s) since overload is typically transient; 429 (rate limit) uses the `Retry-After` header value or a longer backoff since the limit is quota-based.
-- **Streaming/non-streaming dual mode**: The same `query.ts` logic handles both SSE streaming responses and full JSON responses; a thin adapter normalizes both into an AsyncIterable of `ContentBlock` chunks.
-- **Multi-provider support**: The API layer abstracts over Anthropic direct, AWS Bedrock, and Google Vertex AI; provider selection is config-driven; authentication and endpoint differences are handled in per-provider adapters.
-- **Jitter on backoff**: Retry delays include random jitter (±20%) to prevent thundering-herd behavior when many Claude Code instances back off simultaneously after a rate-limit event.
-- **Non-retryable error passthrough**: Authentication errors (401), invalid requests (400), and content policy violations are not retried and surface immediately to the caller with the original error code.
+## 核心要点
+- **`withRetry` AsyncGenerator**：用重试逻辑包装 API 调用生成器；遇到可重试错误时以指数退避重新调用生成器，将上次尝试中已流式传输的 Token 透明地 yield 给新尝试，维持流的连续性。
+- **529 vs. 429 处理**：529（服务器过载）使用激进的短间隔重试（1～4 秒），因为过载通常是短暂的；429（限速）使用 `Retry-After` 响应头的值或更长退避，因为限制是基于配额的。
+- **流式/非流式双模式**：相同的 `query.ts` 逻辑同时处理 SSE 流式响应和完整 JSON 响应；一个薄适配器将两者标准化为 `ContentBlock` 块的 AsyncIterable。
+- **多提供商支持**：API 层抽象了 Anthropic 直连、AWS Bedrock 和 Google Vertex AI；提供商选择由配置驱动；认证和端点差异在各提供商适配器中处理。
+- **退避时加入抖动**：重试延迟包含随机抖动（±20%），以防止多个 Claude Code 实例在限速事件后同时退避时的雷群效应。
+- **不可重试错误直接透传**：认证错误（401）、无效请求（400）和内容策略违规不会重试，直接将原始错误码传递给调用方。
 
-## Transferable Patterns
-1. **Wrap streaming generators with retry logic at the generator boundary**: Implement retry in a wrapper generator that re-invokes the inner generator; this keeps retry logic out of the inner generator and handles partial-stream recovery cleanly.
-2. **Distinguish 429 and 529 retry strategies**: Rate-limit errors need `Retry-After`-aware backoff; overload errors need aggressive short retries — using the same strategy for both wastes time or causes quota burn.
-3. **Abstract provider differences in thin adapters**: Keep the dialog loop provider-agnostic; push Bedrock/Vertex/direct authentication and endpoint differences into per-provider adapter classes that share a common interface.
+## 可迁移的设计模式
+1. **在生成器边界用重试逻辑包装流式生成器**：在包装生成器中实现重试，重新调用内部生成器；这将重试逻辑保持在内部生成器之外，并优雅处理部分流的恢复。
+2. **区分 429 和 529 的重试策略**：限速错误需要感知 `Retry-After` 的退避；过载错误需要激进的短重试——对两者使用相同策略会浪费时间或烧光配额。
+3. **将提供商差异抽象在薄适配器中**：保持对话循环与提供商无关；将 Bedrock/Vertex/直连的认证和端点差异推入各提供商适配器类，共享公共接口。

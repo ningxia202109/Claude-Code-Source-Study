@@ -1,17 +1,17 @@
-# Summary: 19 — Feature Flags & Compile-Time Optimization: DCE, USER_TYPE, and GrowthBook
+# 摘要：19 — Feature Flag 与编译期优化：DCE、USER_TYPE 与 GrowthBook
 
-## Overview
-Covers Claude Code's two-tier feature flag system — compile-time dead code elimination via `feature()` with Bun `--define` constants, and runtime A/B testing via GrowthBook — plus the `MACRO.*` constants for build-time value injection.
+## 概述
+介绍 Claude Code 的双层特性开关系统——通过 `feature()` 配合 Bun `--define` 常量实现编译期死代码消除，以及通过 GrowthBook 实现运行时 A/B 测试——还有用于构建时值注入的 `MACRO.*` 常量。
 
-## Key Points
-- **`feature()` + `require()` DCE**: Wrapping `require()` calls in `if (feature('FLAG'))` blocks allows Bun's bundler to evaluate the condition at compile time and eliminate the unreachable branch entirely, removing code and its transitive dependencies from the bundle.
-- **`USER_TYPE` `--define`**: A Bun `--define` constant injected at build time that classifies the build variant (e.g., `internal`, `external`, `enterprise`); used in `feature()` checks to ship different capability sets in different builds.
-- **`MACRO.*` constants**: Build-time constants (version number, build timestamp, API endpoint) injected via `--define`; accessing them compiles to literal values with zero runtime overhead.
-- **GrowthBook runtime flags**: For gradual rollouts and A/B tests that can't be decided at build time, GrowthBook provides a runtime flag client that fetches flag states from a remote service; flags are evaluated per-user based on attributes.
-- **Flag layering**: Compile-time `feature()` checks act as the outer gate (the code literally doesn't exist in the build); GrowthBook checks act as the inner gate (the code exists but is conditionally activated); this prevents feature leakage even if runtime flags malfunction.
-- **Zero-cost compile-time flags**: Because `feature()` uses `require()` (not `import`), disabled code paths are fully tree-shaken from the bundle — no runtime boolean checks, no dead code in production.
+## 核心要点
+- **`feature()` + `require()` DCE**：将 `require()` 调用包裹在 `if (feature('FLAG'))` 块中，允许 Bun 打包器在编译时对条件求值并完全消除不可达分支，从包中移除代码及其传递依赖。
+- **`USER_TYPE` `--define`**：在构建时注入的 Bun `--define` 常量，对构建变体进行分类（如 `internal`、`external`、`enterprise`）；用于 `feature()` 检查，在不同构建中交付不同的能力集。
+- **`MACRO.*` 常量**：通过 `--define` 注入的构建时常量（版本号、构建时间戳、API 端点）；访问它们编译为字面量值，运行时开销为零。
+- **GrowthBook 运行时标志**：对于无法在构建时决定的渐进式发布和 A/B 测试，GrowthBook 提供运行时标志客户端，从远程服务获取标志状态；标志根据用户属性按用户评估。
+- **标志分层**：编译时 `feature()` 检查作为外层门（代码字面上不存在于构建中）；GrowthBook 检查作为内层门（代码存在但有条件激活）；这防止即使运行时标志失效也会出现特性泄漏。
+- **零成本编译时标志**：由于 `feature()` 使用 `require()`（而非 `import`），禁用的代码路径从包中完全被树摇——生产环境中没有运行时布尔检查，没有死代码。
 
-## Transferable Patterns
-1. **`if (CONSTANT) require()` for zero-cost DCE**: Wrap optional features in a constant-gated `require()` instead of a dynamic `import()`; the bundler will eliminate the dead branch and all its transitive deps.
-2. **Layer compile-time and runtime flags**: Use compile-time flags for capability sets that differ by build variant (internal vs. external); use runtime flags for gradual rollouts and experiments — don't mix the two.
-3. **Inject build metadata as `--define` constants**: Version, build timestamp, and environment are best injected at build time as literal constants rather than read from environment variables at runtime.
+## 可迁移的设计模式
+1. **`if (常量) require()` 实现零成本 DCE**：用常量门控的 `require()` 替代动态 `import()` 包裹可选特性；打包器会消除死分支及其所有传递依赖。
+2. **分层使用编译时和运行时标志**：对按构建变体不同的能力集使用编译时标志（内部 vs. 外部）；对渐进式发布和实验使用运行时标志——不要混用两者。
+3. **通过 `--define` 常量注入构建元数据**：版本、构建时间戳和环境最好在构建时作为字面量常量注入，而非在运行时从环境变量读取。

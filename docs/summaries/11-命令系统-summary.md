@@ -1,17 +1,17 @@
-# Summary: 11 — Command System: 70+ Built-ins, Skills, Plugins, and Workflows
+# 摘要：11 — 命令系统：70+ 内置命令、Skills、Plugins 与 Workflows
 
-## Overview
-Maps the architecture of Claude Code's slash-command system — the `Command` union type, how `commands.ts` aggregates 70+ built-in commands with Skills, Plugins, and Workflows, and the dispatch logic that routes user input to the right handler.
+## 概述
+梳理 Claude Code 斜杠命令系统的架构——`Command` 联合类型、`commands.ts` 如何聚合 70+ 个内置命令以及 Skills、Plugins 和 Workflows，以及将用户输入路由到正确处理器的分发逻辑。
 
-## Key Points
-- **`Command` union type**: Three variants — `prompt` (sends text to the model), `local` (executes a TypeScript function directly), `local-jsx` (renders a React component in the terminal) — each with different execution paths and return types.
-- **`commands.ts` aggregation**: A single file that imports all built-in command definitions plus dynamically discovered Skills, Plugins, and Workflows, merging them into one flat command registry.
-- **70+ built-in commands**: Includes `/help`, `/clear`, `/compact`, `/model`, `/memory`, `/cost`, `/status`, `/config`, and many others — each defined in its own file and registered via the aggregator.
-- **Skills (SKILL.md)**: User-defined commands loaded from `SKILL.md` files in the project or home directory; each skill is a markdown file with a front-matter command name and a natural-language prompt body.
-- **Plugins**: Third-party command packages discovered via `~/.claude/plugins/`; each plugin can contribute multiple commands and custom agents through a standard directory structure.
-- **Dispatch logic**: Command input is matched against the registry by prefix; ambiguous matches are resolved by specificity; unmatched input falls through to the model as a regular message.
+## 核心要点
+- **`Command` 联合类型**：三种变体——`prompt`（向模型发送文本）、`local`（直接执行 TypeScript 函数）、`local-jsx`（在终端渲染 React 组件）——各有不同的执行路径和返回类型。
+- **`commands.ts` 聚合**：导入所有内置命令定义，以及动态发现的 Skills、Plugins 和 Workflows，将它们合并为一个扁平命令注册表的单一文件。
+- **70+ 个内置命令**：包括 `/help`、`/clear`、`/compact`、`/model`、`/memory`、`/cost`、`/status`、`/config` 等——每个在独立文件中定义并通过聚合器注册。
+- **Skills（SKILL.md）**：从项目或 home 目录的 `SKILL.md` 文件加载的用户定义命令；每个 Skill 是一个包含前置元数据命令名和自然语言提示体的 Markdown 文件。
+- **Plugins**：通过 `~/.claude/plugins/` 发现的第三方命令包；每个插件可通过标准目录结构贡献多个命令和自定义 Agent。
+- **分发逻辑**：命令输入通过前缀与注册表匹配；歧义匹配按具体度解析；未匹配的输入作为普通消息传递给模型。
 
-## Transferable Patterns
-1. **Union-type command variants**: Model your command system as a union of distinct execution strategies (text-prompt / function / component) rather than a single interface with nullable fields.
-2. **Aggregate commands at a single entry point**: Maintain one authoritative registry file that merges built-ins, user extensions, and plugins; this makes the full command surface discoverable and debuggable.
-3. **File-based skill definition**: Allow users to define commands as plain markdown files with front-matter; this lowers the barrier to extending the CLI without requiring code compilation.
+## 可迁移的设计模式
+1. **联合类型命令变体**：将命令系统建模为不同执行策略的联合（文本提示 / 函数 / 组件），而非带可空字段的单一接口。
+2. **在单一入口点聚合命令**：维护一个权威的注册表文件，合并内置命令、用户扩展和插件；这使完整的命令面可被发现和调试。
+3. **基于文件的 Skill 定义**：允许用户将命令定义为带前置元数据的纯 Markdown 文件；这降低了扩展 CLI 的门槛，无需代码编译。

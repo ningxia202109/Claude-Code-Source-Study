@@ -1,18 +1,18 @@
-# Summary: 25 — Architecture Patterns Summary: Seven Transferable Patterns from Claude Code
+# 摘要：25 — 架构模式总结：从 Claude Code 提炼的七个可迁移模式
 
-## Overview
-Synthesizes the entire 25-chapter series into seven transferable architectural patterns distilled from Claude Code's production codebase, each with a concrete implementation recipe applicable to any AI-integrated application.
+## 概述
+将全书 25 章的内容综合提炼为七个可迁移的架构模式，这些模式来自 Claude Code 的生产代码库，每个模式都配有可应用于任何 AI 集成应用的具体实现方案。
 
-## Key Points
-- **Pattern 1 — Compile-time DCE via `feature()` + `require()`**: Gate optional features with a constant-checked `require()` so the bundler eliminates dead code at build time; produces zero-overhead build variants without runtime boolean checks.
-- **Pattern 2 — Layered startup with fast paths**: Structure initialization as layers (bootstrap → CLI parse → optional UI → full session); return at the earliest layer that satisfies the request; never load what isn't needed.
-- **Pattern 3 — Minimal reactive Store with `useSyncExternalStore`**: A 35-line custom store satisfies React 18's tear-free rendering contract without Redux or Zustand; only reach for a library when you need its specific features (devtools, middleware).
-- **Pattern 4 — `onChange` side-effects for derived state**: React to state changes via `onChange` subscriptions rather than computing derived state inline; this decouples the trigger from the effect and supports async side-effects cleanly.
-- **Pattern 5 — Context isolation for sub-agents**: Every sub-agent invocation gets a fresh context object (conversation history, tool subset, permissions); shared mutable state between parent and child agents causes subtle, hard-to-reproduce bugs.
-- **Pattern 6 — Deferred tool loading**: Publish tool metadata (name, description, schema) in a manifest; load implementations only when first invoked; this keeps startup memory and system prompt size proportional to what the user actually uses.
-- **Pattern 7 — Defense-in-depth for AI actions**: Layer static rules → programmatic analysis → AI classification → user confirmation for any action with side effects; never rely on a single gate; the cheapest gate goes first.
+## 核心要点
+- **模式一——编译期 DCE via `feature()` + `require()`**：用常量检查的 `require()` 门控可选特性，让打包器在构建时消除死代码；生成零运行时开销的构建变体，无需任何运行时布尔检查。
+- **模式二——分层启动与快速路径**：将初始化结构化为层级（引导 → CLI 解析 → 可选 UI → 完整会话）；在满足请求的最早层返回；永不加载不需要的内容。
+- **模式三——基于 `useSyncExternalStore` 的最小响应式 Store**：35 行自定义 Store 满足 React 18 的无撕裂渲染协议，无需 Redux 或 Zustand；只在需要其特定功能（DevTools、中间件）时才引入库。
+- **模式四——`onChange` 副作用驱动的派生状态**：通过 `onChange` 订阅响应状态变化，而非内联计算派生状态；这将触发与效果解耦，并支持异步副作用。
+- **模式五——子 Agent 上下文隔离**：每次子 Agent 调用都获得全新的上下文对象（对话历史、工具子集、权限）；父子 Agent 之间共享可变状态会导致隐蔽、难以复现的 Bug。
+- **模式六——延迟工具加载**：在清单中发布工具元数据（名称、描述、Schema）；仅在首次调用时加载实现；使启动内存和系统提示大小与用户实际使用量成正比。
+- **模式七——AI 操作的纵深防御**：对任何有副作用的操作分层使用静态规则 → 程序化分析 → AI 分类 → 用户确认；永不依赖单一关卡；最廉价的关卡放在最前面。
 
-## Transferable Patterns
-1. **Apply patterns at the right layer**: Each pattern targets a specific concern — build size, startup latency, rendering, state, security — resist applying a pattern beyond its intended layer.
-2. **Prefer proven primitives over frameworks**: `useSyncExternalStore`, `AsyncGenerator`, `require()` — Claude Code's patterns are built on stable language and platform primitives, not framework-specific abstractions.
-3. **Security as a layered system, not a checklist**: Defense-in-depth means each layer assumes the previous layer may fail; design every security-sensitive path to be safe even if upstream checks are bypassed.
+## 可迁移的设计模式
+1. **在正确层级应用模式**：每个模式针对特定关切——构建大小、启动延迟、渲染、状态、安全——抵制在其预期层级之外应用模式的冲动。
+2. **优先使用经过验证的原语而非框架**：`useSyncExternalStore`、`AsyncGenerator`、`require()` —— Claude Code 的模式建立在稳定的语言和平台原语之上，而非框架特定的抽象。
+3. **安全是分层系统，而非检查清单**：纵深防御意味着每层都假设前一层可能失效；设计每个安全敏感路径，使其即使上游检查被绕过也是安全的。

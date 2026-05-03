@@ -1,17 +1,17 @@
-# Summary: 17 — Settings System: 5+1 Layer Priority, MDM, and Hot-Reload
+# 摘要：17 — Settings 系统：5+1 层优先级、MDM 与热重载
 
-## Overview
-Describes the Claude Code settings system — its six-layer priority stack (Plugin → User → Project → Local → Flag → Policy), MDM-based enterprise policy enforcement, and hot-reload mechanism for settings changes during a live session.
+## 概述
+描述 Claude Code 的设置系统——六层优先级栈（Plugin → User → Project → Local → Flag → Policy）、基于 MDM 的企业策略强制执行，以及在实时会话中对设置变更的热重载机制。
 
-## Key Points
-- **6-layer priority**: Settings are resolved in order: Plugin (lowest) → User-global (`~/.claude/settings.json`) → Project (`.claude/settings.json`) → Local (`.claude/settings.local.json`) → CLI Flag → Policy/MDM (highest, cannot be overridden).
-- **MDM policy enforcement**: Organizations can deploy a managed policy layer via Mobile Device Management (MDM) or a policy file; settings at this layer are read-only and override all user/project settings.
-- **Zod schema validation**: Every settings file is parsed and validated against a Zod schema on load; unknown keys are warned but not fatal; invalid values reject loudly with field-level error messages.
-- **Hot-reload**: A filesystem watcher monitors all active settings files; when a file changes, the affected settings layer is re-parsed and merged, and subscribers are notified — no restart required.
-- **Settings composition**: Lower-priority layers provide defaults; higher-priority layers override specific keys; array-valued settings (e.g., allowed tools) can use `+` prefix to merge rather than replace.
-- **Type-safe access**: A generated TypeScript type covers all known settings keys; accessing an unknown key is a compile-time error, preventing typos in settings reads.
+## 核心要点
+- **6 层优先级**：设置按顺序解析：Plugin（最低）→ 用户全局（`~/.claude/settings.json`）→ 项目（`.claude/settings.json`）→ 本地（`.claude/settings.local.json`）→ CLI 标志 → 策略/MDM（最高，不可覆盖）。
+- **MDM 策略强制**：组织可通过移动设备管理（MDM）或策略文件部署受管策略层；该层的设置只读，覆盖所有用户/项目设置。
+- **Zod Schema 验证**：每个设置文件在加载时都针对 Zod Schema 解析和验证；未知键发出警告但不报错；无效值会以字段级错误信息明确拒绝。
+- **热重载**：文件系统监听器监控所有活跃的设置文件；当文件变更时，受影响的设置层被重新解析和合并，并通知订阅者——无需重启。
+- **设置组合**：低优先级层提供默认值；高优先级层覆盖特定键；数组值设置（如允许的工具）可以使用 `+` 前缀进行合并而非替换。
+- **类型安全访问**：生成的 TypeScript 类型涵盖所有已知设置键；访问未知键是编译期错误，防止设置读取中的拼写错误。
 
-## Transferable Patterns
-1. **Model settings as a priority-ordered merge stack**: Define each layer's scope (user / project / local / policy) explicitly and merge them in a documented order; this makes override behavior predictable and debuggable.
-2. **Reserve a top-priority policy layer**: Always include a highest-priority, read-only policy layer so that enterprise/compliance requirements can be enforced without touching user or project files.
-3. **Hot-reload settings with filesystem watchers**: Watch settings files for changes and re-merge in the background; users should be able to edit settings without restarting the tool.
+## 可迁移的设计模式
+1. **将设置建模为优先级有序的合并栈**：显式定义每层的范围（用户 / 项目 / 本地 / 策略）并按文档记录的顺序合并；这使覆盖行为可预测且可调试。
+2. **保留最高优先级的策略层**：始终包含一个最高优先级、只读的策略层，以便企业/合规要求可以在不修改用户或项目文件的情况下强制执行。
+3. **用文件系统监听器热重载设置**：监控设置文件的变化并在后台重新合并；用户应能在不重启工具的情况下编辑设置。
